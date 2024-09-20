@@ -357,11 +357,20 @@ func (c *rolloutContext) createAnalysisRun(rolloutAnalysis *v1alpha1.RolloutAnal
 	if podHash == "" {
 		return nil, fmt.Errorf("Latest ReplicaSet '%s' has no pod hash in the labels", c.newRS.Name)
 	}
+
+	// Call a helper function to create the AnalysisRun
 	ar, err := c.newAnalysisRunFromRollout(rolloutAnalysis, args, podHash, infix, labels)
 	if err != nil {
 		return nil, err
 	}
-	analysisRunIf := c.argoprojclientset.ArgoprojV1alpha1().AnalysisRuns(c.rollout.Namespace)
+
+	// Check if templateNamespace is provided
+	analysisNamespace := c.rollout.Namespace
+	if rolloutAnalysis.TemplateNamespace != "" {
+		analysisNamespace = rolloutAnalysis.TemplateNamespace
+	}
+
+	analysisRunIf := c.argoprojclientset.ArgoprojV1alpha1().AnalysisRuns(analysisNamespace)
 	return analysisutil.CreateWithCollisionCounter(c.log, analysisRunIf, *ar)
 }
 
@@ -422,7 +431,6 @@ func (c *rolloutContext) cancelAnalysisRuns(analysisRuns []*v1alpha1.AnalysisRun
 	return nil
 }
 
-// newAnalysisRunFromRollout generates an AnalysisRun from the rollouts, the AnalysisRun Step, the new/stable ReplicaSet, and any extra objects.
 func (c *rolloutContext) newAnalysisRunFromRollout(rolloutAnalysis *v1alpha1.RolloutAnalysis, args []v1alpha1.Argument, podHash string, infix string, labels map[string]string) (*v1alpha1.AnalysisRun, error) {
 	revision := c.rollout.Annotations[annotations.RevisionAnnotation]
 	nameParts := []string{c.rollout.Name, podHash, revision}
@@ -430,32 +438,43 @@ func (c *rolloutContext) newAnalysisRunFromRollout(rolloutAnalysis *v1alpha1.Rol
 		nameParts = append(nameParts, infix)
 	}
 	name := strings.Join(nameParts, "-")
-	var run *v1alpha1.AnalysisRun
-	var err error
+
 	templates, clusterTemplates, err := c.getAnalysisTemplatesFromRefs(&rolloutAnalysis.Templates)
 	if err != nil {
 		return nil, err
 	}
+
+	// Merge Rollout labels and AnalysisRunMetadata labels
 	runLabels := labels
 	for k, v := range rolloutAnalysis.AnalysisRunMetadata.Labels {
 		runLabels[k] = v
 	}
-
 	for k, v := range c.rollout.Spec.Selector.MatchLabels {
 		runLabels[k] = v
 	}
 
+	// Set the annotations for the AnalysisRun
 	runAnnotations := map[string]string{
 		annotations.RevisionAnnotation: revision,
 	}
 	for k, v := range rolloutAnalysis.AnalysisRunMetadata.Annotations {
 		runAnnotations[k] = v
 	}
+
+	// Determine the namespace for the AnalysisRun
+	analysisNamespace := c.rollout.Namespace // Default to the Rollout's namespace
+	if rolloutAnalysis.TemplateNamespace != "" {
+		analysisNamespace = rolloutAnalysis.TemplateNamespace // Use the specified templateNamespace if provided
+	}
+
+	// Create the AnalysisRun using the correct namespace
 	run, err = analysisutil.NewAnalysisRunFromTemplates(templates, clusterTemplates, args, rolloutAnalysis.DryRun, rolloutAnalysis.MeasurementRetention,
-		runLabels, runAnnotations, name, "", c.rollout.Namespace)
+		runLabels, runAnnotations, name, "", analysisNamespace)
 	if err != nil {
 		return nil, err
 	}
+
+	// Set the owner reference to the Rollout
 	run.OwnerReferences = []metav1.OwnerReference{*metav1.NewControllerRef(c.rollout, controllerKind)}
 	return run, nil
 }

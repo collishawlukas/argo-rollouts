@@ -75,7 +75,8 @@ type AnalysisTemplateSpec struct {
 	// Templates reference to a list of analysis templates to combine with the rest of the metrics for an AnalysisRun
 	// +patchMergeKey=templateName
 	// +patchStrategy=merge
-	Templates []AnalysisTemplateRef `json:"templates,omitempty" patchStrategy:"merge" patchMergeKey:"templateName" protobuf:"bytes,5,rep,name=templates"`
+	Templates         []AnalysisTemplateRef `json:"templates,omitempty" patchStrategy:"merge" patchMergeKey:"templateName" protobuf:"bytes,5,rep,name=templates"`
+	TemplateNamespace string                `json:"templateNamespace,omitempty" protobuf:"bytes,2,opt,name=templateNamespace"`
 }
 
 // DurationString is a string representing a duration (e.g. 30s, 5m, 1h)
