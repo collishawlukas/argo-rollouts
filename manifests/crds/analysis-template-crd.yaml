@@ -60,11 +60,12 @@ spec:
                           - name
                           type: object
                       type: object
-                  required:
-                  - name
-                  type: object
-                type: array
-              dryRun:
+              nodeSelector:
+                type: object
+                additionalProperties:
+                  type: string
+                x-kubernetes-map-type: atomic
+            dryRun:
                 items:
                   properties:
                     metricName:
