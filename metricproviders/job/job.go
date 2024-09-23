@@ -110,6 +110,14 @@ func newMetricJob(run *v1alpha1.AnalysisRun, metric v1alpha1.Metric, jobNS strin
 	if ns != run.Namespace || customJobKubeconfig {
 		ownerRef = nil
 	}
+
+	if metric.Provider.Job.Spec.Template.Spec.NodeSelector != nil {
+		jobSpec := metric.Provider.Job.Spec.Template.Spec
+		if len(jobSpec.NodeSelector) > 0 {
+			jobSpec.NodeSelector = metric.Provider.Job.Spec.Template.Spec.NodeSelector
+		}
+	}
+
 	job := batchv1.Job{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:            newJobName(run, metric),
