@@ -60,6 +60,10 @@ spec:
                           - name
                           type: object
                       type: object
+                    required:
+                      - name
+                    type: object
+                  type: array
               nodeSelector:
                 type: object
                 additionalProperties:
