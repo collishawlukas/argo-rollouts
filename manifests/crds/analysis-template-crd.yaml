@@ -11,72 +11,73 @@ spec:
     listKind: AnalysisTemplateList
     plural: analysistemplates
     shortNames:
-    - at
+      - at
     singular: analysistemplate
   preserveUnknownFields: false
   scope: Namespaced
   versions:
-  - additionalPrinterColumns:
-    - description: Time since resource was created
-      jsonPath: .metadata.creationTimestamp
-      name: Age
-      type: date
-    name: v1alpha1
-    schema:
-      openAPIV3Schema:
-        properties:
-          apiVersion:
-            type: string
-          kind:
-            type: string
-          metadata:
-            type: object
-          spec:
-            properties:
-              args:
-                items:
-                  properties:
-                    name:
-                      type: string
-                    value:
-                      type: string
-                    valueFrom:
-                      properties:
-                        fieldRef:
-                          properties:
-                            fieldPath:
-                              type: string
-                          required:
-                          - fieldPath
-                          type: object
-                        secretKeyRef:
-                          properties:
-                            key:
-                              type: string
-                            name:
-                              type: string
-                          required:
-                          - key
-                          - name
-                          type: object
+    - additionalPrinterColumns:
+        - description: Time since resource was created
+          jsonPath: .metadata.creationTimestamp
+          name: Age
+          type: date
+      name: v1alpha1
+      schema:
+        openAPIV3Schema:
+          properties:
+            apiVersion:
+              type: string
+            kind:
+              type: string
+            metadata:
+              type: object
+            spec:
+              properties:
+                args:
+                  items:
+                    properties:
+                      name:
+                        type: string
+                      value:
+                        type: string
+                      valueFrom:
+                        properties:
+                          fieldRef:
+                            properties:
+                              fieldPath:
+                                type: string
+                            required:
+                              - fieldPath
+                            type: object
+                          secretKeyRef:
+                            properties:
+                              key:
+                                type: string
+                              name:
+                                type: string
+                            required:
+                              - key
+                              - name
+                            type: object
+                        type: object
+                      required:
+                        - name
                       type: object
-                    required:
-                      - name
-                    type: object
-                  type: array
-              nodeSelector:
-                type: object
-                additionalProperties:
-                  type: string
-                x-kubernetes-map-type: atomic
-            dryRun:
-                items:
-                  properties:
-                    metricName:
-                      type: string
-                  required:
-                  - metricName
+                    type: array
+                nodeSelector:
                   type: object
+                  additionalProperties:
+                    type: string
+                  x-kubernetes-map-type: atomic
+                dryRun:
+                  type: array
+                  items:
+                    properties:
+                      metricName:
+                        type: string
+                      required:
+                        - metricName
+                    type: object
                 type: array
               measurementRetention:
                 items:
